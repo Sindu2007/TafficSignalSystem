@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic Signal Optimization</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">INTELLIGENT TRANSPORT SYSTEM</p>
+            <h1>Smart Traffic Control</h1>
+            <p class="subtitle">
+                Fuzzy Logic + Genetic Algorithm
+            </p>
+        </div>
+        <div class="status">
+            <span class="status-dot"></span>
+            Simulation Mode
+        </div>
+    </header>
+
+    <main class="container">
+
+        <section class="welcome">
+            <div>
+                <h2>Traffic Monitoring Dashboard</h2>
+                <p>
+                    Monitor four-way traffic and explore optimized
+                    signal timings.
+                </p>
+            </div>
+            <button id="runButton" class="primary-btn">
+                Run Optimization
+            </button>
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <p>Total Vehicles</p>
+                <h2 id="totalVehicles">48</h2>
+                <span>Across four roads</span>
+            </article>
+
+            <article class="stat-card">
+                <p>Average Waiting Time</p>
+                <h2 id="waitingTime">5.00 <small>min*</small></h2>
+                <span>Hybrid controller result</span>
+            </article>
+
+            <article class="stat-card">
+                <p>Average Queue Length</p>
+                <h2 id="queueLength">5.00</h2>
+                <span>Illustrative simulation result</span>
+            </article>
+
+            <article class="stat-card">
+                <p>Queue Reduction</p>
+                <h2 id="queueReduction">30.17%</h2>
+                <span>Compared with fixed-time control</span>
+            </article>
+        </section>
+
+        <section class="content-grid">
+
+            <article class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Intersection View</h2>
+                        <p>Four-way traffic signal simulation</p>
+                    </div>
+                    <span class="live-label">DEMO</span>
+                </div>
+
+                <div class="intersection">
+                    <div class="road road-horizontal"></div>
+                    <div class="road road-vertical"></div>
+
+                    <div class="lane-line horizontal-line"></div>
+                    <div class="lane-line vertical-line"></div>
+
+                    <div class="signal signal-north" id="signalNorth">
+                        <span class="light red active"></span>
+                        <span class="light yellow"></span>
+                        <span class="light green"></span>
+                    </div>
+
+                    <div class="signal signal-south" id="signalSouth">
+                        <span class="light red active"></span>
+                        <span class="light yellow"></span>
+                        <span class="light green"></span>
+                    </div>
+
+                    <div class="signal signal-east" id="signalEast">
+                        <span class="light red active"></span>
+                        <span class="light yellow"></span>
+                        <span class="light green"></span>
+                    </div>
+
+                    <div class="signal signal-west" id="signalWest">
+                        <span class="light red active"></span>
+                        <span class="light yellow"></span>
+                        <span class="light green"></span>
+                    </div>
+
+                    <span class="direction north">N</span>
+                    <span class="direction south">S</span>
+                    <span class="direction east">E</span>
+                    <span class="direction west">W</span>
+
+                    <div class="center-mark">
+                        <span>SMART</span>
+                        <strong>JUNCTION</strong>
+                    </div>
+                </div>
+
+                <div class="signal-legend">
+                    <span><i class="legend-dot red-dot"></i> Red</span>
+                    <span><i class="legend-dot yellow-dot"></i> Yellow</span>
+                    <span><i class="legend-dot green-dot"></i> Green</span>
+                </div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Road Traffic</h2>
+                        <p>Adjust the simulated vehicle counts</p>
+                    </div>
+                </div>
+
+                <div class="road-input">
+                    <label for="north">North Road</label>
+                    <div class="input-row">
+                        <input id="north" type="range"
+                               min="0" max="50" value="15">
+                        <strong id="northValue">15</strong>
+                    </div>
+                </div>
+
+                <div class="road-input">
+                    <label for="south">South Road</label>
+                    <div class="input-row">
+                        <input id="south" type="range"
+                               min="0" max="50" value="8">
+                        <strong id="southValue">8</strong>
+                    </div>
+                </div>
+
+                <div class="road-input">
+                    <label for="east">East Road</label>
+                    <div class="input-row">
+                        <input id="east" type="range"
+                               min="0" max="50" value="20">
+                        <strong id="eastValue">20</strong>
+                    </div>
+                </div>
+
+                <div class="road-input">
+                    <label for="west">West Road</label>
+                    <div class="input-row">
+                        <input id="west" type="range"
+                               min="0" max="50" value="5">
+                        <strong id="westValue">5</strong>
+                    </div>
+                </div>
+
+                <button id="resetButton" class="secondary-btn">
+                    Reset Traffic
+                </button>
+            </article>
+        </section>
+
+        <section class="panel results-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Controller Comparison</h2>
+                    <p>Illustrative results from the existing project run</p>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Controller</th>
+                            <th>Average Queue</th>
+                            <th>Vehicles Crossed</th>
+                            <th>Green Time Strategy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Fixed-Time</td>
+                            <td>7.16</td>
+                            <td>133.6</td>
+                            <td>Fixed duration</td>
+                        </tr>
+                        <tr>
+                            <td>Fuzzy Logic</td>
+                            <td>5.94</td>
+                            <td>139.5</td>
+                            <td>Traffic-based</td>
+                        </tr>
+                        <tr class="highlight-row">
+                            <td>Hybrid Fuzzy + GA</td>
+                            <td>5.00</td>
+                            <td>139.4</td>
+                            <td>Optimized parameters</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p id="message" class="message">
+                Change the traffic counts and select Run Optimization
+                to explore the interface.
+            </p>
+        </section>
+
+        <footer>
+            <p>
+                College Project · Intelligent Traffic Signal Optimization
+                Using Fuzzy Logic and Genetic Algorithm
+            </p>
+            <p>UI prototype — not connected to real traffic signals.</p>
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
