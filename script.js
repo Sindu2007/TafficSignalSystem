@@ -1,4 +1,3 @@
-
 const roads = ["north", "south", "east", "west"];
 
 const initialTraffic = {
@@ -8,6 +7,8 @@ const initialTraffic = {
     west: 5
 };
 
+const API_URL = "https://traffic-signal-api-6q9s.onrender.com/optimize";
+
 const runButton = document.getElementById("runButton");
 const resetButton = document.getElementById("resetButton");
 
@@ -15,9 +16,7 @@ function getTraffic() {
     const traffic = {};
 
     roads.forEach(road => {
-        traffic[road] = Number(
-            document.getElementById(road).value
-        );
+        traffic[road] = Number(document.getElementById(road).value);
 
         document.getElementById(road + "Value").textContent =
             traffic[road];
@@ -45,76 +44,11 @@ function setSignal(activeRoad) {
         });
 
         const color = road === activeRoad ? "green" : "red";
-
         signal.querySelector("." + color).classList.add("active");
     });
 }
 
-function updateDashboard() {
-    const traffic = getTraffic();
-    updateTotal(traffic);
-
-    // Initial demonstration state
-    document.getElementById("message").textContent =
-        "Traffic inputs updated. Run the demo to see a signal change.";
-}
-
-function runDemo() {
-    const traffic = getTraffic();
-
-    const total = Object.values(traffic).reduce(
-        (sum, count) => sum + count, 0
-    );
-
-    if (total === 0) {
-        document.getElementById("message").textContent =
-            "No vehicles in the simulation. Add traffic to a road first.";
-        return;
-    }
-
-    const busiestRoad = roads.reduce((best, road) =>
-        traffic[road] > traffic[best] ? road : best
-    , roads[0]);
-
-    setSignal(busiestRoad);
-
-    // Illustrative formula only, not a real GA or fuzzy controller.
-    const averageQueue = total / roads.length;
-    const demoWaitingTime = (
-        1 + averageQueue / 4
-    ).toFixed(2);
-
-    document.getElementById("waitingTime").innerHTML =
-        demoWaitingTime + ' <small>demo units*</small>';
-
-    document.getElementById("queueLength").textContent =
-        averageQueue.toFixed(2);
-
-    document.getElementById("queueReduction").textContent =
-        "—";
-
-    document.getElementById("message").textContent =
-        "Demo only: " + busiestRoad.toUpperCase() +
-        " road has the highest vehicle count (" +
-        traffic[busiestRoad] +
-        "). Its green light is highlighted. " +
-        "This is not yet the Python Fuzzy + GA algorithm.";
-}
-
-roads.forEach(road => {
-    document.getElementById(road).addEventListener(
-        "input", updateDashboard
-    );
-});
-
-runButton.addEventListener("click", runDemo);
-
-resetButton.addEventListener("click", () => {
-    roads.forEach(road => {
-        document.getElementById(road).value =
-            initialTraffic[road];
-    });
-
+function resetSignals() {
     roads.forEach(road => {
         const signal = document.getElementById(
             "signal" + road.charAt(0).toUpperCase() + road.slice(1)
@@ -126,20 +60,125 @@ resetButton.addEventListener("click", () => {
 
         signal.querySelector(".red").classList.add("active");
     });
+}
 
-    document.getElementById("waitingTime").innerHTML =
-        '5.00 <small>min*</small>';
+function updateDashboard() {
+    const traffic = getTraffic();
+    updateTotal(traffic);
 
-    document.getElementById("queueLength").textContent =
-        "5.00";
+    document.getElementById("message").textContent =
+        "Traffic inputs updated. Click Run Optimization to calculate signal timings.";
+}
 
-    document.getElementById("queueReduction").textContent =
-        "30.17%";
+async function runOptimization() {
+    const traffic = getTraffic();
+
+    const total = Object.values(traffic).reduce(
+        (sum, count) => sum + count, 0
+    );
+
+    if (total === 0) {
+        document.getElementById("message").textContent =
+            "No vehicles detected. Add traffic to at least one road.";
+        return;
+    }
+
+    runButton.disabled = true;
+    runButton.textContent = "Optimizing...";
+
+    document.getElementById("message").textContent =
+        "Sending traffic data to the Python Fuzzy Logic + GA backend...";
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(traffic)
+        });
+
+        if (!response.ok) {
+            throw new Error("Backend returned HTTP " + response.status);
+        }
+
+        const result = await response.json();
+
+        const fuzzy = result.fuzzy_timings;
+        const optimized = result.optimized_timings;
+
+        if (
+            !Array.isArray(fuzzy) ||
+            !Array.isArray(optimized) ||
+            fuzzy.length !== 4 ||
+            optimized.length !== 4
+        ) {
+            throw new Error("Unexpected response from backend.");
+        }
+
+        // Highlight the road assigned the longest green time by GA.
+        const busiestIndex = optimized.indexOf(Math.max(...optimized));
+        const activeRoad = roads[busiestIndex];
+
+        setSignal(activeRoad);
+
+        // Show average traffic count, not a measured waiting time.
+        document.getElementById("queueLength").textContent =
+            (total / roads.length).toFixed(2);
+
+        // The API does not calculate actual waiting time or queue reduction.
+        document.getElementById("waitingTime").textContent = "N/A";
+        document.getElementById("queueReduction").textContent = "N/A";
+
+        const timingDetails = roads.map((road, index) => {
+            return road.toUpperCase() +
+                ": Fuzzy " + Number(fuzzy[index]).toFixed(2) +
+                "s, GA " + Number(optimized[index]).toFixed(0) + "s";
+        }).join(" | ");
+
+        document.getElementById("message").textContent =
+            "Optimization completed! " +
+            timingDetails +
+            ". Total cycle: " + result.total_cycle +
+            " seconds. Longest green allocation: " +
+            activeRoad.toUpperCase() + ".";
+
+    } catch (error) {
+        console.error("Optimization error:", error);
+
+        document.getElementById("message").textContent =
+            "Could not connect to the optimization API. " +
+            "Please check that the backend is Live and try again.";
+    } finally {
+        runButton.disabled = false;
+        runButton.textContent = "Run Optimization";
+    }
+}
+
+roads.forEach(road => {
+    document.getElementById(road).addEventListener(
+        "input",
+        updateDashboard
+    );
+});
+
+runButton.addEventListener("click", runOptimization);
+
+resetButton.addEventListener("click", () => {
+    roads.forEach(road => {
+        document.getElementById(road).value = initialTraffic[road];
+    });
+
+    resetSignals();
+
+    document.getElementById("waitingTime").textContent = "N/A";
+    document.getElementById("queueLength").textContent = "12.00";
+    document.getElementById("queueReduction").textContent = "N/A";
 
     updateDashboard();
 
     document.getElementById("message").textContent =
-        "Traffic inputs reset. Initial demo values restored.";
+        "Traffic inputs reset. Ready for a new optimization.";
 });
 
 updateDashboard();
